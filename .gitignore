@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Custom Medical Dataset & Weights
+*.nii
+*.nii.gz
+*.keras
+*.h5
+Dataset/
+masks/
+slices/
+demo_data/
