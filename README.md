@@ -7,12 +7,12 @@ Deep learning pipeline for automatic clinical sarcopenia assessment from L3 CTs.
 ## Project Overview
 This repository contains a complete, end-to-end Deep Learning pipeline for the automated assessment of Sarcopenia from Computed Tomography (CT) scans. 
 
-By leveraging a custom deep, fully-convolutional U-Net architecture, this tool autonomously segments the **Abdominal Muscle Wall (Class 1)** and **Psoas Muscles (Class 2 & 3)** at the L3/L4 vertebral levels. It bypasses manual, time-consuming radiological tracing to instantly compute cross-sectional areas (cm²) and mean radiodensities (Hounsfield Units - HU) required for the Skeletal Muscle Index (SMI).
+By leveraging a custom deep, fully-convolutional U-Net architecture, this tool autonomously segments the **Abdominal Muscle Wall (Class 1)** and **Psoas Muscles (Class 2)** at the L3 vertebral level. It bypasses manual, time-consuming radiological tracing to instantly compute cross-sectional areas (cm²) and mean radiodensities (Hounsfield Units - HU) required for the Skeletal Muscle Index (SMI).
 
 ## Key Features
 * **Clinical-Grade Processing:** Native integration with `.nii` (NIfTI) files, preserving critical spatial metadata, affine matrices, and physical pixel spacing.
 * **Radiological Windowing:** Automated Hounsfield Unit (HU) clipping to [-30, +150] to specifically isolate striated skeletal muscle tissue prior to neural network inference.
-* **Physical Validation Metrics:** Evaluates model boundary accuracy using Balanced Average Hausdorff Distance (bAHD) and Maximum Hausdorff Distance (Max HD) calculated strictly in **millimeters (mm)**, rather than pixels.
+* **Physical Validation Metrics:** Evaluates model boundary accuracy using Balanced Average Hausdorff Distance (bAHD) and Maximum Hausdorff Distance (Max HD) calculated strictly in **millimeters (mm)**.
 * **Standalone Deployment:** Includes an isolated inference engine that requires no training dependencies, generating both a reconstructed NIfTI mask and an automated clinical `.txt` report.
 
 ---
@@ -25,7 +25,7 @@ The project is structured into three distinct execution modules to strictly deco
 **Purpose:** Data Ingestion, Privacy, and Quality Assurance.
 * Decompresses raw `.nii.gz` files.
 * Anonymizes patient identifiers to comply with medical data privacy standards, creating a secure mapping registry.
-* Audits all segmentation masks to ensure categorical integrity (strictly `[0, 1, 2]` labels) and prevents data corruption prior to training.
+* Audits all segmentation masks to ensure categorical integrity (strictly `[0, 1, 2]` labels) and prevents data corruption before training.
 
 ### 2. `02_model_training_and_evaluation.ipynb`
 **Purpose:** Architecture, Training, and Physical Validation.
@@ -48,13 +48,10 @@ To run this pipeline locally, you must install the required Python packages. It 
 
 **Prerequisites:**
 * Python 3.8+
-* GPU support highly recommended for Module 02 (NVIDIA CUDA toolkit).
 
 **Setup:**
 ```bash
-# Clone the repository
-git clone [https://github.com/YourUsername/sarcopenia-unet-assessment.git](https://github.com/YourUsername/sarcopenia-unet-assessment.git)
-cd sarcopenia-unet-assessment
+Download the file: 'U-Net_application.ipynb' and the model weights:'unet_sarcopenia_best.h5'.
+Select the name of the CT scan from your local repository by changing the name of the link in the Python file. Get the mask by waiting.
 
-# Install required packages
-pip install -r requirements.txt
+
