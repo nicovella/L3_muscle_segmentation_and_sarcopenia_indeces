@@ -1,57 +1,37 @@
-# L3_muscle_segmentation_and_sarcopenia_indeces
-Deep learning pipeline for automatic clinical sarcopenia assessment from L3 CTs. A custom U-Net is used to segment abdominal and psoas muscles. The independent inference tool calculates physical cross-sectional area (cm2) and mean radiodensity (HU) from NIfTI meta-data and provides ready to use diagnostic text reports.
+# L3 Muscle Segmentation and Sarcopenia Indices
 
+Automatic sarcopenia assessment from L3 CT scans. A custom U-Net segments the abdominal muscle wall (class 1) and the psoas muscles (class 2) at the L3 vertebral level, and calculates cross-sectional area in cm² and mean radiodensity in HU — the inputs for the Skeletal Muscle Index (SMI = area in cm² / height in m²).
 
-# Automated Sarcopenia Assessment via Custom U-Net Segmentation
+Model: custom U-Net, 256×256 input, HU window [-30, 150], loss = Sparse Categorical Crossentropy + foreground Dice. No patient scans are in this repo.
 
-## Project Overview
-This repository contains a complete, end-to-end Deep Learning pipeline for the automated assessment of Sarcopenia from Computed Tomography (CT) scans. 
+## What's in this repo
 
-By leveraging a custom deep, fully-convolutional U-Net architecture, this tool autonomously segments the **Abdominal Muscle Wall (Class 1)** and **Psoas Muscles (Class 2)** at the L3 vertebral level. It bypasses manual, time-consuming radiological tracing to instantly compute cross-sectional areas (cm²) and mean radiodensities (Hounsfield Units - HU) required for the Skeletal Muscle Index (SMI).
+```
+First_Training/        Thesis version — 125 patients
+Second_Training/       Retraining — 211 patients (125 original + 86 new)
+app/                   Streamlit interface — drag and drop a scan, get the results
+U-Net_application.ipynb   Notebook version of the same inference
+```
 
-## Key Features
-* **Clinical-Grade Processing:** Native integration with `.nii` (NIfTI) files, preserving critical spatial metadata, affine matrices, and physical pixel spacing.
-* **Radiological Windowing:** Automated Hounsfield Unit (HU) clipping to [-30, +150] to specifically isolate striated skeletal muscle tissue prior to neural network inference.
-* **Physical Validation Metrics:** Evaluates model boundary accuracy using Balanced Average Hausdorff Distance (bAHD) and Maximum Hausdorff Distance (Max HD) calculated strictly in **millimeters (mm)**.
-* **Standalone Deployment:** Includes an isolated inference engine that requires no training dependencies, generating both a reconstructed NIfTI mask and an automated clinical `.txt` report.
+**First_Training/** — the original thesis training. See [First_Training/README.md](First_Training/README.md) for the files, the results, and how to use it.
 
----
+**Second_Training/** — the same model retrained with more data, plus an external evaluation on a separate batch of 30 patients. See [Second_Training/README.md](Second_Training/README.md) for the files, the results, and how to use it.
 
-## Repository Architecture
+**app/** — the easiest way to use the retrained model. The weights file is already inside the folder, next to `app.py`. See below for how to run it.
 
-The project is structured into three distinct execution modules to strictly decouple data engineering, model training, and clinical deployment:
+## Results (internal test set)
 
-### 1. `01_patient_engineering_sanity_check.ipynb`
-**Purpose:** Data Ingestion, Privacy, and Quality Assurance.
-* Decompresses raw `.nii.gz` files.
-* Anonymizes patient identifiers to comply with medical data privacy standards, creating a secure mapping registry.
-* Audits all segmentation masks to ensure categorical integrity (strictly `[0, 1, 2]` labels) and prevents data corruption before training.
+| | Abdominals Dice / IoU | Abdominals bAHD / HD95 | Psoas Dice / IoU | Psoas bAHD / HD95 |
+|---|---|---|---|---|
+| First Training (125 patients) | 0.9124 / 0.8412 | 1.12 mm / 6.40 mm | 0.9157 / 0.8461 | 1.05 mm / 4.99 mm |
+| Second Training (211 patients) | 0.9185 / 0.8518 | 1.21 mm / 10.14 mm | 0.9257 / 0.8634 | 0.97 mm / 4.09 mm |
 
-### 2. `02_model_training_and_evaluation.ipynb`
-**Purpose:** Architecture, Training, and Physical Validation.
-* Implements a custom Keras `Sequence` generator for memory-efficient, on-the-fly batching and HU windowing.
-* Utilizes a Combined Objective Function (Sparse Categorical Crossentropy + custom Dice Loss) to combat extreme class imbalance.
-* Performs quantitative validation in physical space (mm) and automatically searches the validation set for the "Worst-Case Scenario" to audit morphological failures.
+## How to use it
 
-### 3. `03_clinical_inference_and_reporting.ipynb` (Deployment)
-**Purpose:** Lightweight inference for end-users and clinicians.
-* Bypasses training configurations by loading pre-trained `.keras` weights directly.
-* Takes an unseen `.nii` CT scan and predicts the muscle map.
-* Resamples the prediction to native resolution, restores original NIfTI headers, and calculates the exact cross-sectional Area (cm²) and Density (HU).
-* Exports the final mask and an automated Sarcopenia Assessment Text Report.
+**Easiest — the app:** download the `app/` folder. The retrained weights (`unet_sarcopenia_best.keras`) are already inside it, next to `app.py`. Then run `streamlit run app.py` (or double-click `run_app.bat` on Windows). Drop a `.nii` or `.nii.gz` L3 slice in, and download the predicted mask and the text report.
 
----
+**Notebook:** you only need to download the weights file and the U-Net application file — `Second_Training/unet_sarcopenia_best.keras` and `U-Net_application.ipynb` — put them in the same folder and run the notebook. For the thesis model instead, use `First_Training/unet_sarcopenia_best.h5`.
 
-## Installation & Requirements
+**Requirements:** Python 3.8+, TensorFlow, nibabel, numpy, scikit-learn, scipy, matplotlib, seaborn, pandas, streamlit (only for the app).
 
-To run this pipeline locally, you must install the required Python packages. It is highly recommended to use a virtual environment (e.g., Anaconda or `venv`).
-
-**Prerequisites:**
-* Python 3.8+
-
-**Setup:**
-```bash
-Download the file: 'U-Net_application.ipynb' and the model weights:'unet_sarcopenia_best.h5'.
-Select the name of the CT scan from your local repository by changing the name of the link in the Python file. Get the mask by waiting.
-
-
+**Privacy:** no patient scans or names are in this repo. Keep your `Dataset/` folder and `mapping_pazienti.csv` local only — never add them to GitHub.
